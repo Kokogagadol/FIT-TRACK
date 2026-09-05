@@ -4,12 +4,12 @@ function doGet() {
     .addMetaTag('viewport', 'width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no');
 }
 
-function doPost(e) {
+// Fungsi otomatis yang dipanggil langsung oleh aplikasi tanpa butuh URL Web App
+function saveWorkoutToSheet(data) {
   try {
     var sheet = SpreadsheetApp.getActiveSpreadsheet().getActiveSheet();
-    var data = JSON.parse(e.postData.contents);
     
-    // Otomatis buat baris judul jika sheet masih kosong
+    // Buat header jika sheet masih kosong
     if (sheet.getLastRow() === 0) {
       sheet.appendRow(['Tanggal', 'Waktu', 'Latihan', 'Jumlah/Jarak', 'Satuan', 'Durasi', 'Pace', 'Catatan']);
     }
@@ -25,10 +25,8 @@ function doPost(e) {
       data.catatan || ''
     ]);
     
-    return ContentService.createTextOutput(JSON.stringify({ status: 'success' }))
-      .setMimeType(ContentService.MimeType.JSON);
+    return { status: 'success' };
   } catch(err) {
-    return ContentService.createTextOutput(JSON.stringify({ status: 'error', message: err.message }))
-      .setMimeType(ContentService.MimeType.JSON);
+    return { status: 'error', message: err.message };
   }
 }
