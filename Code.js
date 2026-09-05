@@ -1,18 +1,10 @@
-function doGet() {
-  return HtmlService.createHtmlOutputFromFile('index')
-    .setTitle('FitTrack Pro')
-    .addMetaTag('viewport', 'width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no');
-}
-
-// Fungsi otomatis yang dipanggil langsung oleh aplikasi tanpa butuh URL Web App
-function saveWorkoutToSheet(data) {
+// 1. Fungsi untuk menerima kiriman HTTP POST dari Vercel / Website Luar
+function doPost(e) {
   try {
     var sheet = SpreadsheetApp.getActiveSpreadsheet().getActiveSheet();
     
-    // Buat header jika sheet masih kosong
-    if (sheet.getLastRow() === 0) {
-      sheet.appendRow(['Tanggal', 'Waktu', 'Latihan', 'Jumlah/Jarak', 'Satuan', 'Durasi', 'Pace', 'Catatan']);
-    }
+    // Parse data JSON yang dikirim via Body dari Vercel
+    var data = JSON.parse(e.postData.contents);
     
     sheet.appendRow([
       data.tanggal || new Date().toLocaleDateString('id-ID'),
@@ -20,13 +12,32 @@ function saveWorkoutToSheet(data) {
       data.jenis,
       data.jumlah,
       data.satuan,
-      data.durasi || '-',
-      data.pace || '-',
-      data.catatan || ''
+      data.durasi,
+      data.pace,
+      data.catatan
     ]);
-    
-    return { status: 'success' };
-  } catch(err) {
-    return { status: 'error', message: err.message };
+
+    return ContentService.createTextOutput(JSON.stringify({ "status": "success" }))
+      .setMimeType(ContentService.MimeType.JSON);
+
+  } catch (error) {
+    return ContentService.createTextOutput(JSON.stringify({ "status": "error", "message": error.toString() }))
+      .setMimeType(ContentService.MimeType.JSON);
   }
+}
+
+// 2. Fungsi Direct untuk Mode internal Apps Script
+function saveWorkoutToSheet(data) {
+  var sheet = SpreadsheetApp.getActiveSpreadsheet().getActiveSheet();
+  sheet.appendRow([
+    data.tanggal,
+    data.waktu,
+    data.jenis,
+    data.jumlah,
+    data.satuan,
+    data.durasi,
+    data.pace,
+    data.catatan
+  ]);
+  return "OK";
 }
